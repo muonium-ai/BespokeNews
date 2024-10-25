@@ -57,16 +57,16 @@ def fetch_news_items(query=None):
     cursor = conn.cursor()
     if query:
         cursor.execute('''
-            SELECT id, title, by, url
+            SELECT id, title, by, url, score
             FROM stories
             WHERE title LIKE ?
-            ORDER BY last_updated DESC
+            ORDER BY score DESC
         ''', ('%' + query + '%',))
     else:
         cursor.execute('''
-            SELECT id, title, by, url
+            SELECT id, title, by, url, score
             FROM stories
-            ORDER BY last_updated DESC
+            ORDER BY score DESC
         ''')
     news_items = cursor.fetchall()
     conn.close()
