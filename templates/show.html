@@ -13,7 +13,7 @@
             | Story ID: {{ news_item['id'] }}
         </p>
         {% if news_item['content'] %}
-            <div class="story-content">
+            <div class="story-content" style="white-space: pre-wrap;">
                 {{ news_item['content'] | safe }}
             </div>
         {% else %}
