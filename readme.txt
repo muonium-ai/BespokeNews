@@ -1,45 +1,95 @@
-fetch hackernews stories locally
 
-apply whitelist and blacklist
+# Hacker News Stories Fetcher
 
-save story basic details locally
+A tool to **fetch and store Hacker News stories locally**, with a built-in Flask app for viewing and managing the data.
 
-cache content for 24 hours
+---
 
-list interesting stories as a short podcast
+## Setup
 
-fetch actual urls, save locally
+1. **Create a Conda environment:**
+   ```bash
+   conda create -n hnlocal -y
+   conda activate hnlocal
+   ```
 
-extract main text
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
+---
 
+## Usage
 
-conda create -n hnlocal -y
-conda activate hnlocal
-pip install -r .\requirements.txt
+1. **Open two terminals:**
 
-usage
+   - **Terminal 1**: Fetch Hacker News stories  
+     ```bash
+     python hn_topnews_fetch.py
+     ```
 
-open two terminals
+   - **Terminal 2**: Run the Flask app  
+     (Ensure Flask is installed; command to run Flask will depend on your setup)
 
-fetch results
-python .\hn_topnews_fetch.py
+---
 
-flask app 
+## Features in Progress (TODO)
 
+- **Whitelist and Blacklist**  
+  Apply a whitelist or blacklist to filter stories.
+  
+- **Dynamic User-Agent**  
+  Read the User-Agent from a text file instead of hardcoding.
 
+- **Parallel Downloads**  
+  Explore parallelization for faster downloads.
 
-todo
-whitelist and blacklist
-user agent from txt file instead of hardcoded
-can downloads be paralelized
-better flask ui
-pinokio
-can each day database kept seperate
-can update be performed from webui
-show extracted content, show AI summary, notebooklm version of content
-github
-search hn via https://hn.algolia.com/?q=llama
+- **Flask UI Improvements**  
+  Make the Flask interface more user-friendly.
 
+- **Pinokio (Possible Feature)**  
+  Investigate new feature integration with "Pinokio".
 
+- **Separate Databases by Day**  
+  Organize data with separate databases for each day.
 
+- **WebUI Updates**  
+  Enable updating stories directly from the WebUI.
+
+- **Content Extraction and AI Summary**  
+  Extract main text, and generate AI summaries (NotebookLM integration).
+
+---
+
+## Additional Ideas
+
+- **Search Stories via Algolia API**  
+  Example: [Hacker News Algolia Search](https://hn.algolia.com/?q=llama)
+
+- **Cache Content**  
+  Cache stories for 24 hours to avoid redundant downloads.
+
+- **Podcast of Interesting Stories**  
+  List top stories as a short podcast.
+
+- **Save Story Details Locally**  
+  Fetch and store story URLs, main text, and metadata locally.
+
+---
+
+## License
+
+MIT License. Feel free to contribute or suggest improvements!
+
+---
+
+## Contact
+
+If you encounter any issues or have suggestions, please open an issue on GitHub.
+
+## Author
+
+**Senthil Nayagam**  
+Email: senthil @ muonium.ai
+X: [senthilnayagam ](https://x.com/senthilnayagam)
