@@ -167,7 +167,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>Latest Hacker News Stories</h1>
+        <h1>
+            <span style="float: left;">Latest Hacker News Stories</span>
+            <span style="float: right;">
+                <form action="/search" method="get" style="display: inline;">
+                    <input type="text" name="q" placeholder="Search" value="{{ request.args.get('q', '') }}">
+                    <input type="submit" value="Search">
+                </form>
+            </span>
+            <div style="clear: both;"></div>
+        </h1>
         <ul class="news-list">
             {% for item in news_items %}
             <li class="news-item">

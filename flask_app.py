@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sqlite3
 from datetime import datetime
 import re
@@ -66,6 +66,31 @@ def index():
     ]
 
     return render_template('index.html', news_items=filtered_news)
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id, title, by, url
+        FROM stories
+        WHERE title LIKE ?
+        ORDER BY last_updated DESC
+    ''', ('%' + query + '%',))
+    news_items = cursor.fetchall()
+    conn.close()
+
+    # Load blacklist and filter the news items
+    blacklist = load_blacklist()
+    filtered_news = [
+        item for item in news_items 
+        if not is_blacklisted(item['url'], item['title'], blacklist)
+    ]
+
+    return render_template('index.html', news_items=filtered_news, query=query)
+
+
 
 if __name__ == '__main__':
     app.run(debug=False)
