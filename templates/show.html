@@ -1,20 +1,24 @@
-{% extends "index.html" %}
+{% extends "base.html" %}
+
+{% block title %}{{ news_item['title'] }} - Hacker News Local{% endblock %}
 
 {% block content %}
-<div class="story-content">
-    <h2>{{ story['title'] }}</h2>
-    <p class="meta">
-        Posted by <a href="https://news.ycombinator.com/user?id={{ story['by'] }}" target="_blank">{{ story['by'] }}</a>
-        | Story ID: {{ story['id'] }}
-        | <a href="{{ story['url'] }}" target="_blank">Original Link</a>
-    </p>
-    {% if story['content'] %}
-    <div class="content">
-        {{ story['content'] | safe }}
+    <div class="news-item">
+        <h2 class="news-title">{{ news_item['title'] }}</h2>
+        <p class="news-details">
+            Posted by <strong>{{ news_item['by'] }}</strong>
+            {% if news_item['url'] %}
+                | <a href="{{ news_item['url'] }}" target="_blank">Original Article</a>
+            {% endif %}
+            | Story ID: {{ news_item['id'] }}
+        </p>
+        {% if news_item['content'] %}
+            <div class="story-content">
+                {{ news_item['content'] | safe }}
+            </div>
+        {% else %}
+            <p>No content available for this story.</p>
+        {% endif %}
+        <p><a href="{{ url_for('index') }}">Back to Home</a></p>
     </div>
-    {% else %}
-    <p>No content available for this story.</p>
-    {% endif %}
-    <p><a href="/">Back to Home</a></p>
-</div>
 {% endblock %}

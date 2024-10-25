@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found - Hacker News Local{% endblock %}
+
+{% block content %}
+    <div class="error-page">
+        <h2>404 - Page Not Found</h2>
+        <p>The page you're looking for doesn't exist.</p>
+        <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+    </div>
+{% endblock %}

@@ -109,18 +109,23 @@ def show(id):
         FROM stories
         WHERE id = ?
     ''', (id,))
-    story = cursor.fetchone()
+    news_item = cursor.fetchone()
     conn.close()
 
-    if story is None:
+    if news_item is None:
         # Story with the given ID does not exist
         abort(404)
 
     # Check if the story is blacklisted
-    if is_blacklisted(story['url'], story['title']):
+    if is_blacklisted(news_item['url'], news_item['title']):
         abort(404)
 
-    return render_template('show.html', story=story)
+    return render_template('show.html', news_item=news_item)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
 
 if __name__ == '__main__':
     app.run(debug=False)
