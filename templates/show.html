@@ -13,6 +13,11 @@
             | Story ID: {{ news_item['id'] }}
         </p>
         {% if news_item['content'] %}
+        <h2 class="news-title">Summary</h2>
+            <div class="story-summary" style="white-space: pre-wrap;">
+                {{ news_item['summary'] | safe| markdown  }}
+            </div>
+            <h2 class="news-title">Content</h2>
             <div class="story-content" style="white-space: pre-wrap;">
                 {{ news_item['content'] | safe }}
             </div>

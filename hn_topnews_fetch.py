@@ -6,27 +6,39 @@ import trafilatura
 from tqdm import tqdm
 import logging
 import os
+import urllib3
+
+# Import the Ollama Python client
+import ollama
+
+# Suppress InsecureRequestWarning due to verify=False in requests.get
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Define the headers with the specified User-Agent
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
-                  " Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
+    )
 }
 
 def create_database():
-    # create folder db if it does not exist
+    # Create folder 'db' if it does not exist
     if not os.path.exists('db'):
         os.makedirs('db')
-    # db_name='hackernews.db'
+
     # Get current date in dd_mm_yyyy format
     current_date = datetime.now().strftime("%d_%m_%Y")
 
-    # Create the string with "hackernews" + date + ".db"
+    # Create the database name with the current date
     db_name = f"./db/hackernews_{current_date}.db"
 
-    print(db_name)
+    print(f"Database: {db_name}")
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
+
+    # Modify the table creation to include the 'summary' field
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY,
@@ -35,9 +47,17 @@ def create_database():
             score INTEGER,
             url TEXT,
             content TEXT,
+            summary TEXT,
             last_updated TIMESTAMP
         )
     ''')
+
+    # Add 'summary' column if it doesn't exist (for existing databases)
+    cursor.execute("PRAGMA table_info(stories)")
+    columns = [column[1] for column in cursor.fetchall()]
+    if 'summary' not in columns:
+        cursor.execute("ALTER TABLE stories ADD COLUMN summary TEXT")
+
     conn.commit()
     return conn
 
@@ -62,7 +82,6 @@ def fetch_story_details(story_id):
 
 def extract_content(url, timeout=10):
     try:
-        #response = requests.get(url, headers=HEADERS, timeout=timeout)
         response = requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
         if response.status_code == 200:
             downloaded = response.text
@@ -77,6 +96,36 @@ def extract_content(url, timeout=10):
         print(f'Error: {e}')
         return None
 
+def generate_summary(content):
+    """
+    Generate a summary of the content using the Ollama Llama 3.2 model.
+    """
+    if not content:
+        return None
+
+    try:
+
+        # Initialize the Ollama client
+        client = ollama.Client()  # Adjust initialization if required by the client
+
+        # Define the prompt for summarization
+        prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"
+
+
+
+        response = ollama.chat(model='llama3.2', messages=[
+        {
+        'role': 'user',
+        'content': prompt,
+        }])
+        summary = response['message']['content'].strip()
+
+        return summary
+    except Exception as e:
+        print(f'Error generating summary: {e}')
+        logging.error(f'Error generating summary: {e}')
+        return None
+
 def story_exists(cursor, story_id):
     cursor.execute('SELECT id FROM stories WHERE id = ?', (story_id,))
     return cursor.fetchone() is not None
@@ -84,8 +133,8 @@ def story_exists(cursor, story_id):
 def save_story(conn, story):
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO stories (id, title, by, score, url, content, last_updated)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO stories (id, title, by, score, url, content, summary, last_updated)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         story['id'],
         story.get('title'),
@@ -93,6 +142,7 @@ def save_story(conn, story):
         story.get('score'),
         story.get('url'),
         story.get('content'),
+        story.get('summary'),
         story.get('last_updated')
     ))
     conn.commit()
@@ -101,7 +151,7 @@ def update_story(conn, story):
     cursor = conn.cursor()
     cursor.execute('''
         UPDATE stories
-        SET title = ?, by = ?, score = ?, url = ?, content = ?, last_updated = ?
+        SET title = ?, by = ?, score = ?, url = ?, content = ?, summary = ?, last_updated = ?
         WHERE id = ?
     ''', (
         story.get('title'),
@@ -109,6 +159,7 @@ def update_story(conn, story):
         story.get('score'),
         story.get('url'),
         story.get('content'),
+        story.get('summary'),
         story.get('last_updated'),
         story['id']
     ))
@@ -117,7 +168,7 @@ def update_story(conn, story):
 def main():
     # Configure logging
     current_date = datetime.now().strftime("%d_%m_%Y")
-    log_filename = f"./db/hackernews_{current_date}.og"
+    log_filename = f"./db/hackernews_{current_date}.log"
     logging.basicConfig(filename=log_filename, level=logging.INFO)
     conn = create_database()
     cursor = conn.cursor()
@@ -138,6 +189,7 @@ def main():
                 'score': story_details.get('score'),
                 'url': story_details.get('url'),
                 'content': None,
+                'summary': None,
                 'last_updated': datetime.now()
             }
 
@@ -145,8 +197,14 @@ def main():
                 content = extract_content(story['url'], timeout=10)
                 story['content'] = content
 
+                # Generate summary using Ollama Llama 3.2 model
+                summary = generate_summary(content)
+                story['summary'] = summary
+
             save_story(conn, story)
-        #time.sleep(0.5)  # Be polite and don't overwhelm the servers
+
+        # Be polite and don't overwhelm the servers
+        time.sleep(0.5)
 
     conn.close()
 

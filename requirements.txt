@@ -4,3 +4,7 @@ tqdm
 lxml_html_clean
 flask
 gunicorn
+ollama
+markdown
+markupsafe
+bleach
