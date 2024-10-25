@@ -34,6 +34,10 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
     python .\flask_app.py
      ```
 
+    ### run in production mode
+    ```bash
+    gunicorn -w 4 -b 0.0.0.0:8000 flask_app:app
+     ```
 ---
 
 ## Features in Progress (TODO)

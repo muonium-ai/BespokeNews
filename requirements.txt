@@ -3,3 +3,4 @@ trafilatura
 tqdm
 lxml_html_clean
 flask
+gunicorn
