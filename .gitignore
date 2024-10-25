@@ -1,4 +1,5 @@
-hackernews.db
+*.db
 old/
 *.log
 db/
+config/
