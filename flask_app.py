@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, abort
 import sqlite3
 from datetime import datetime
 import re
@@ -98,6 +98,29 @@ def search():
     news_items = fetch_news_items(query=query)
     filtered_news = filter_news_items(news_items)
     return render_template('index.html', news_items=filtered_news, query=query)
+
+
+@app.route('/show/<int:id>')
+def show(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id, title, by, url, content
+        FROM stories
+        WHERE id = ?
+    ''', (id,))
+    story = cursor.fetchone()
+    conn.close()
+
+    if story is None:
+        # Story with the given ID does not exist
+        abort(404)
+
+    # Check if the story is blacklisted
+    if is_blacklisted(story['url'], story['title']):
+        abort(404)
+
+    return render_template('show.html', story=story)
 
 if __name__ == '__main__':
     app.run(debug=False)

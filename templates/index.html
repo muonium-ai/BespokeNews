@@ -182,7 +182,7 @@
             <li class="news-item">
                 <p class="news-title">
                     <strong>{{ loop.index }}.</strong>
-                    <a href="{{ item['url'] }}" target="_blank">{{ item['title'] }}</a>
+                    <a href="{{ item['url'] }}" target="_blank">{{ item['title'] }}</a> | <a href="/show/{{ item['id'] }}" target="_blank">show</a>
                 </p>
                 <p class="news-details">
                    Score  {{ item['score'] }} | Posted by <a href="https://news.ycombinator.com/submitted?id={{ item['by'] }}" target="_blank">{{ item['by'] }}</a> |

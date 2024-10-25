@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="story-content">
+    <h2>{{ story['title'] }}</h2>
+    <p class="meta">
+        Posted by <a href="https://news.ycombinator.com/user?id={{ story['by'] }}" target="_blank">{{ story['by'] }}</a>
+        | Story ID: {{ story['id'] }}
+        | <a href="{{ story['url'] }}" target="_blank">Original Link</a>
+    </p>
+    {% if story['content'] %}
+    <div class="content">
+        {{ story['content'] | safe }}
+    </div>
+    {% else %}
+    <p>No content available for this story.</p>
+    {% endif %}
+    <p><a href="/">Back to Home</a></p>
+</div>
+{% endblock %}
