@@ -29,8 +29,10 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
      python hn_topnews_fetch.py
      ```
 
-   - **Terminal 2**: Run the Flask app  
-     (Ensure Flask is installed; command to run Flask will depend on your setup)
+   - **Terminal 2**: Run the Flask app
+    ```bash
+    python .\flask_app.py
+     ```
 
 ---
 
