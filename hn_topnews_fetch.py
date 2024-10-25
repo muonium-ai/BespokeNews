@@ -5,6 +5,7 @@ from datetime import datetime
 import trafilatura
 from tqdm import tqdm
 import logging
+import os
 
 # Define the headers with the specified User-Agent
 HEADERS = {
@@ -13,6 +14,9 @@ HEADERS = {
 }
 
 def create_database():
+    # create folder db if it does not exist
+    if not os.path.exists('db'):
+        os.makedirs('db')
     # db_name='hackernews.db'
     # Get current date in dd_mm_yyyy format
     current_date = datetime.now().strftime("%d_%m_%Y")
