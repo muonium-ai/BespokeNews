@@ -82,7 +82,7 @@ def is_blacklisted(url, title):
 
     return False
 
-def fetch_news_items(query=None):
+def fetch_news_items(query=None,order_by=None):
     """Fetch news items from the database, optionally filtering by a search query."""
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -94,11 +94,18 @@ def fetch_news_items(query=None):
             ORDER BY score DESC
         ''', ('%' + query + '%',))
     else:
-        cursor.execute('''
-            SELECT id, title, by, url, score
-            FROM stories
-            ORDER BY score DESC
-        ''')
+        if order_by:
+            cursor.execute(f'''
+                SELECT id, title, by, url, score
+                FROM stories
+                ORDER BY {order_by} DESC
+            ''')
+        else:
+            cursor.execute('''
+                SELECT id, title, by, url, score
+                FROM stories
+                ORDER BY score DESC
+            ''')
     news_items = cursor.fetchall()
     conn.close()
     return news_items
@@ -122,6 +129,13 @@ def index():
     news_items = fetch_news_items()
     filtered_news = filter_news_items(news_items)
     return render_template('index.html', news_items=filtered_news)
+
+@app.route('/latest')
+def latest():
+    news_items = fetch_news_items(order_by='last_updated')
+    filtered_news = filter_news_items(news_items)
+    return render_template('index.html', news_items=filtered_news)
+
 
 @app.route('/search')
 def search():

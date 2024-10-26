@@ -169,7 +169,9 @@
     <div class="container">
         <!-- Header with navigation links and search form -->
         <h1>
-            <span style="float: left;"><a href="/">Latest Hacker News Stories</a></span>
+            <span style="float: left;"> HNLocal </span>
+            <span style="float: left;"> | <a href="/">Top Stories</a> </span>
+            <span style="float: left;"> | <a href="/latest">Latest Stories </a></span>
             <span style="float: right;">
                 <form action="/search" method="get" style="display: inline;">
                     <input type="text" name="q" placeholder="Search" value="{{ request.args.get('q', '') }}">
