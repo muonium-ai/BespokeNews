@@ -198,8 +198,8 @@ def main():
                 story['content'] = content
 
                 # Generate summary using Ollama Llama 3.2 model
-                summary = generate_summary(content)
-                story['summary'] = summary
+                #summary = generate_summary(content)
+                #story['summary'] = #summary
 
             save_story(conn, story)
 
