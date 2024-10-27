@@ -7,9 +7,72 @@ from tqdm import tqdm
 import logging
 import os
 import urllib3
+import re
 
 # Import the Ollama Python client
 import ollama
+
+
+def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
+    """
+    Load blacklist patterns from a file.
+
+    The blacklist file should have entries in the following format:
+    - Lines starting with 'regex:' are treated as regular expressions.
+    - Lines starting with 'string:' are treated as plain string matches.
+    - Lines starting with '#' are comments and are ignored.
+    - Empty lines are ignored.
+
+    Parameters:
+        blacklist_file (str): Path to the blacklist file.
+
+    Returns:
+        dict: A dictionary with two keys 'regex' and 'string', containing lists of patterns.
+    """
+    blacklist_data = {"regex": [], "string": []}
+    
+    if os.path.exists(blacklist_file):
+        with open(blacklist_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):  # Ignore comments and empty lines
+                    if line.startswith("regex:"):
+                        pattern = line.split("regex:", 1)[1].strip()
+                        blacklist_data["regex"].append(pattern)
+                    elif line.startswith("string:"):
+                        string_match = line.split("string:", 1)[1].strip()
+                        blacklist_data["string"].append(string_match)
+    else:
+        print(f"Blacklist file '{blacklist_file}' not found.")
+    return blacklist_data
+
+def is_blacklisted(url, blacklist):
+    """
+    Check if the URL matches any blacklist patterns.
+
+    Parameters:
+        url (str): The URL to check.
+        blacklist (dict): The blacklist data loaded from 'load_blacklist'.
+
+    Returns:
+        bool: True if the URL is blacklisted, False otherwise.
+    """
+    url = str(url) if url else ""
+
+    # Check against regex patterns
+    for pattern in blacklist.get("regex", []):
+        if re.search(pattern, url):
+            return True
+
+    # Check against plain string matches
+    for string in blacklist.get("string", []):
+        if string in url:
+            return True
+
+    return False
+
+
+
 
 # Suppress InsecureRequestWarning due to verify=False in requests.get
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -81,19 +144,24 @@ def fetch_story_details(story_id):
         return None
 
 def extract_content(url, timeout=10):
-    try:
-        response = requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
-        if response.status_code == 200:
-            downloaded = response.text
-            content = trafilatura.extract(downloaded, url=url)
-            return content
-        else:
-            print(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
-            logging.error(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
+    blacklist = load_blacklist()
+    if not is_blacklisted(url, blacklist):
+        try:
+            response = requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
+            if response.status_code == 200:
+                downloaded = response.text
+                content = trafilatura.extract(downloaded, url=url)
+                return content
+            else:
+                print(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
+                logging.error(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
+                return None
+        except Exception as e:
+            print(f'Exception while fetching content from URL: {url}')
+            print(f'Error: {e}')
             return None
-    except Exception as e:
-        print(f'Exception while fetching content from URL: {url}')
-        print(f'Error: {e}')
+    else:
+        print(f'URL is blacklisted, skipping it : {url}')
         return None
 
 def generate_summary(content):
@@ -175,6 +243,7 @@ def main():
     top_story_ids = fetch_top_story_ids()
     total_stories = len(top_story_ids)
     print(f"Total stories to process: {total_stories}")
+
 
     for story_id in tqdm(top_story_ids, desc='Processing stories'):
         if story_exists(cursor, story_id):
