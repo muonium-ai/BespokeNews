@@ -9,8 +9,7 @@ import os
 import urllib3
 import re
 
-# Import the Ollama Python client
-import ollama
+
 
 
 def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
@@ -164,35 +163,6 @@ def extract_content(url, timeout=10):
         print(f'URL is blacklisted, skipping it : {url}')
         return None
 
-def generate_summary(content):
-    """
-    Generate a summary of the content using the Ollama Llama 3.2 model.
-    """
-    if not content:
-        return None
-
-    try:
-
-        # Initialize the Ollama client
-        client = ollama.Client()  # Adjust initialization if required by the client
-
-        # Define the prompt for summarization
-        prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"
-
-
-
-        response = ollama.chat(model='llama3.2', messages=[
-        {
-        'role': 'user',
-        'content': prompt,
-        }])
-        summary = response['message']['content'].strip()
-
-        return summary
-    except Exception as e:
-        print(f'Error generating summary: {e}')
-        logging.error(f'Error generating summary: {e}')
-        return None
 
 def story_exists(cursor, story_id):
     cursor.execute('SELECT id FROM stories WHERE id = ?', (story_id,))
