@@ -20,6 +20,34 @@ ALLOWED_ATTRIBUTES = {
     'img': ['src', 'alt', 'title'],
 }
 
+import tldextract
+
+def extract_main_domain(url):
+    """
+    Extracts the main domain from a given URL, handling complex TLDs.
+    
+    Parameters:
+        url (str): The URL string.
+    
+    Returns:
+        str: The main domain (e.g., example.co.uk) or None if the URL is invalid.
+    """
+    try:
+        ext = tldextract.extract(url)
+        if ext.domain and ext.suffix:
+            return f"{ext.domain}.{ext.suffix}"
+        else:
+            return None
+    except Exception as e:
+        # Log the error if necessary
+        return None
+
+
+@app.template_filter('extract_main_domain')
+def extract_main_domain_filter(url):
+    return extract_main_domain(url)
+
+
 @app.template_filter('markdown')
 def markdown_filter(text):
     """

@@ -12,7 +12,7 @@
             </p>
             <p class="news-details">
                 Score {{ item['score'] }} | Posted by <a href="https://news.ycombinator.com/submitted?id={{ item['by'] }}" target="_blank">{{ item['by'] }}</a> |
-                Story ID: <a href="https://news.ycombinator.com/item?id={{ item['id'] }}" target="_blank">{{ item['id'] }}</a>
+                Story ID: <a href="https://news.ycombinator.com/item?id={{ item['id'] }}" target="_blank">{{ item['id'] }}</a> <a href="https://news.ycombinator.com/from?site={{ item['url'] | extract_main_domain }}" target="_blank">{{ item['url'] | extract_main_domain }} </a>
             </p>
         </li>
         {% endfor %}
