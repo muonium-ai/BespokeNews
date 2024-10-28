@@ -164,6 +164,34 @@
             }
         }
     </style>
+    <script type="text/javascript">
+        // Total refresh interval in milliseconds (5 minutes)
+        const refreshInterval = 60000; // 5 * 60 * 1000
+    
+        // Display countdown timer
+        function displayCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            let remainingTime = refreshInterval / 1000; // in seconds
+    
+            const countdownTimer = setInterval(() => {
+                remainingTime--;
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                countdownElement.textContent = `${minutes}m ${seconds}s`;
+    
+                if (remainingTime <= 0) {
+                    clearInterval(countdownTimer);
+                    window.location.reload();
+                }
+            }, 1000);
+        }
+    
+        // Initialize countdown on page load
+        window.onload = function() {
+            displayCountdown();
+        };
+    </script>
+    
 </head>
 <body>
     <div class="container">
@@ -171,7 +199,10 @@
         <h1>
             <span style="float: left;"> HNLocal </span>
             <span style="float: left;"> | <a href="/">Top Stories</a> </span>
-            <span style="float: left;"> | <a href="/latest">Latest Stories </a></span>
+            <span style="float: left;"> | <a href="/latest">Latest Stories </a></span><span style="float: left;"> | </span>
+            <span id="countdown" style="font-size: 14px; color: #555;">
+                Page will refresh in 1m 0s
+            </span>
             <span style="float: right;">
                 <form action="/search" method="get" style="display: inline;">
                     <input type="text" name="q" placeholder="Search" value="{{ request.args.get('q', '') }}">
@@ -180,6 +211,7 @@
             </span>
             <div style="clear: both;"></div>
         </h1>
+        
 
         {% block content %}
         {% endblock %}

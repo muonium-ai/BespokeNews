@@ -33,7 +33,7 @@ def main():
     logging.basicConfig(filename='./db/scheduler.log', level=logging.INFO)
 
     # Schedule the tasks every 5 minutes
-    duration = 5
+    duration = 1
     schedule.every(duration).minutes.do(fetch_news)
     schedule.every(duration).minutes.do(generate_summaries)
 
