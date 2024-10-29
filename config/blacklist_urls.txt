@@ -1,0 +1,17 @@
+# Blacklist patterns for URLs
+
+# Regular expression patterns
+regex:.*example\.com.*
+regex:^https?://(www\.)?spamwebsite\.net
+
+# Plain string matches
+string:phishing-site.com
+string:badwebsite.org
+
+# msm blocking sites
+string:reuters.com
+string:nytimes.com
+string:wsj.com
+string:fastcompany.com
+string:sfgate.com
+string:sfchronicle.com
