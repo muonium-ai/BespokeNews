@@ -8,7 +8,12 @@
         <li class="news-item">
             <p class="news-title">
                 <strong>{{ loop.index }}.</strong>
-                <a href="{{ item['url'] }}" target="_blank">{{ item['title'] }}</a> | <a href="{{ url_for('show', id=item['id']) }}">show</a>
+                <a href="{{ item['url'] }}" target="_blank">{{ item['title'] }}</a> |
+                {% if item['content'] %}
+                    <a href="{{ url_for('show', id=item['id']) }}" class="show-link">show</a>
+                {% else %}
+                    <span class="disabled-link">show</span>
+                {% endif %}
             </p>
             <p class="news-details">
                 Score {{ item['score'] }} | Posted by <a href="https://news.ycombinator.com/submitted?id={{ item['by'] }}" target="_blank">{{ item['by'] }}</a> |

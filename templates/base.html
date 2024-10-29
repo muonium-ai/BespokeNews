@@ -120,6 +120,18 @@
             font-size: 8pt;
         }
 
+        /* Style for disabled "show" link */
+        .disabled-link {
+            color: #999; /* Gray color to indicate disabled state */
+            cursor: not-allowed; /* Change cursor to indicate non-clickable */
+            text-decoration: none; /* Remove underline */
+        }
+
+        /* Optional: Hover effect for active "show" links */
+        .show-link:hover {
+            text-decoration: underline; /* Add underline on hover */
+        }
+
         /* Responsive adjustments */
         @media screen and (max-width: 1200px) {
             .container {

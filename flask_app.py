@@ -116,7 +116,7 @@ def fetch_news_items(query=None,order_by=None):
     cursor = conn.cursor()
     if query:
         cursor.execute('''
-            SELECT id, title, by, url, score
+            SELECT id, title, by, url, score, content, summary 
             FROM stories
             WHERE title LIKE ?
             ORDER BY score DESC
@@ -124,13 +124,13 @@ def fetch_news_items(query=None,order_by=None):
     else:
         if order_by:
             cursor.execute(f'''
-                SELECT id, title, by, url, score
+                SELECT id, title, by, url, score, content, summary
                 FROM stories
                 ORDER BY {order_by} DESC
             ''')
         else:
             cursor.execute('''
-                SELECT id, title, by, url, score
+                SELECT id, title, by, url, score, content, summary
                 FROM stories
                 ORDER BY score DESC
             ''')
