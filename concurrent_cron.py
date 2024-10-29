@@ -38,6 +38,9 @@ def main():
     schedule.every(duration).minutes.do(generate_summaries)
 
     print("Scheduler started. Press Ctrl+C to exit.")
+        # Run the tasks immediately before starting the schedule loop
+    fetch_news()
+    generate_summaries()
 
     try:
         while True:
