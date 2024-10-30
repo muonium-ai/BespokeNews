@@ -39,7 +39,7 @@ def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
         dict: A dictionary with two keys 'regex' and 'string', containing lists of patterns.
     """
     blacklist_data = {"regex": [], "string": []}
-    
+
     if os.path.exists(blacklist_file):
         with open(blacklist_file, "r") as f:
             for line in f:
@@ -54,6 +54,39 @@ def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
     else:
         print(f"Blacklist file '{blacklist_file}' not found.")
     return blacklist_data
+
+def load_prioritise(prioritise_file="config/priority.txt"):
+    """
+    Load prioritization patterns from a file.
+
+    The prioritise file should have entries in the following format:
+    - Lines starting with 'regex:' are treated as regular expressions.
+    - Lines starting with 'string:' are treated as plain string matches.
+    - Lines starting with '#' are comments and are ignored.
+    - Empty lines are ignored.
+
+    Parameters:
+        prioritise_file (str): Path to the prioritise file.
+
+    Returns:
+        dict: A dictionary with two keys 'regex' and 'string', containing lists of patterns.
+    """
+    prioritise_data = {"regex": [], "string": []}
+
+    if os.path.exists(prioritise_file):
+        with open(prioritise_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):  # Ignore comments and empty lines
+                    if line.startswith("regex:"):
+                        pattern = line.split("regex:", 1)[1].strip()
+                        prioritise_data["regex"].append(pattern)
+                    elif line.startswith("string:"):
+                        string_match = line.split("string:", 1)[1].strip()
+                        prioritise_data["string"].append(string_match)
+    else:
+        print(f"Prioritise file '{prioritise_file}' not found.")
+    return prioritise_data
 
 def is_blacklisted(url, blacklist):
     """
@@ -75,10 +108,37 @@ def is_blacklisted(url, blacklist):
 
     # Check against plain string matches
     for string in blacklist.get("string", []):
-        if string in url:
+        if string.lower() in url.lower():
             return True
 
     return False
+
+def is_prioritised(url, title, prioritise_patterns):
+    """
+    Check if the URL or title matches any prioritization patterns and assign priority.
+
+    Parameters:
+        url (str): The URL of the story.
+        title (str): The title of the story.
+        prioritise_patterns (dict): The prioritization patterns loaded from 'load_prioritise'.
+
+    Returns:
+        int: Priority level (2 for high, 1 for medium, 0 for default).
+    """
+    url = str(url) if url else ""
+    title = str(title) if title else ""
+
+    # High Priority: Matches any regex pattern
+    for pattern in prioritise_patterns.get("regex", []):
+        if re.search(pattern, url) or re.search(pattern, title):
+            return 2  # High priority
+
+    # Medium Priority: Matches any string pattern (case-insensitive)
+    for string in prioritise_patterns.get("string", []):
+        if string.lower() in url.lower() or string.lower() in title.lower():
+            return 1  # Medium priority
+
+    return 0  # Default priority
 
 def create_database():
     """
@@ -101,7 +161,7 @@ def create_database():
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
-    # Modify the table creation to include the 'summary' field
+    # Modify the table creation to include the 'summary' and 'priority' fields
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY,
@@ -111,6 +171,7 @@ def create_database():
             url TEXT,
             content TEXT,
             summary TEXT,
+            priority INTEGER DEFAULT 0,
             last_updated TIMESTAMP
         )
     ''')
@@ -120,6 +181,10 @@ def create_database():
     columns = [column[1] for column in cursor.fetchall()]
     if 'summary' not in columns:
         cursor.execute("ALTER TABLE stories ADD COLUMN summary TEXT")
+
+    # Add 'priority' column if it doesn't exist (for existing databases)
+    if 'priority' not in columns:
+        cursor.execute("ALTER TABLE stories ADD COLUMN priority INTEGER DEFAULT 0")
 
     conn.commit()
     return conn
@@ -200,6 +265,40 @@ def extract_content(url, timeout=10, blacklist=None):
         print(f'URL is blacklisted, skipping it: {url}')
         return None
 
+def generate_summary(content):
+    """
+    Generate a summary of the content using the Ollama Llama 3.2 model.
+
+    Parameters:
+        content (str): The content to summarize.
+
+    Returns:
+        str or None: The generated summary if successful, None otherwise.
+    """
+    if not content:
+        return None
+
+    try:
+        # Initialize the Ollama client
+        client = ollama.Client()  # Adjust initialization if required by the client
+
+        # Define the prompt for summarization
+        prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"
+
+        response = ollama.chat(model='llama3.2', messages=[
+            {
+                'role': 'user',
+                'content': prompt,
+            }])
+        
+        summary = response['message']['content'].strip()
+
+        return summary
+    except Exception as e:
+        print(f'Error generating summary: {e}')
+        logging.error(f'Error generating summary: {e}')
+        return None
+
 def save_story(conn, story):
     """
     Save a story to the SQLite database.
@@ -211,8 +310,8 @@ def save_story(conn, story):
     try:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO stories (id, title, by, score, url, content, summary, last_updated)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO stories (id, title, by, score, url, content, summary, priority, last_updated)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             story['id'],
             story.get('title'),
@@ -221,6 +320,7 @@ def save_story(conn, story):
             story.get('url'),
             story.get('content'),
             story.get('summary'),
+            story.get('priority'),
             story.get('last_updated')
         ))
         conn.commit()
@@ -231,19 +331,34 @@ def save_story(conn, story):
         print(f"Error saving story ID {story['id']}: {e}")
         logging.error(f"Error saving story ID {story['id']}: {e}")
 
-def process_story(story_id, blacklist):
+def process_story(story_id, blacklist, prioritise_patterns):
     """
-    Process a single story: fetch details and extract content.
+    Process a single story: fetch details, check blacklist, assign priority, and extract content.
 
     Parameters:
         story_id (int): The ID of the story to process.
-        blacklist (dict): The blacklist data.
+        blacklist (dict): The blacklist data loaded from 'load_blacklist'.
+        prioritise_patterns (dict): The prioritization patterns loaded from 'load_prioritise'.
 
     Returns:
-        dict or None: The processed story data, or None if failed.
+        dict or None: The processed story data, or None if failed or blacklisted.
     """
-    story_details = fetch_story_details(story_id)
-    if story_details:
+    try:
+        story_details = fetch_story_details(story_id)
+        if not story_details:
+            return None
+
+        # Check if the story is blacklisted
+        if is_blacklisted(story_details.get('url'), blacklist):
+            return None
+
+        # Assign priority
+        priority = is_prioritised(
+            story_details.get('url'),
+            story_details.get('title'),
+            prioritise_patterns
+        )
+
         story = {
             'id': story_details.get('id'),
             'title': story_details.get('title'),
@@ -252,6 +367,7 @@ def process_story(story_id, blacklist):
             'url': story_details.get('url'),
             'content': None,
             'summary': None,
+            'priority': priority,
             'last_updated': datetime.now()
         }
 
@@ -259,19 +375,24 @@ def process_story(story_id, blacklist):
             content = extract_content(story['url'], timeout=10, blacklist=blacklist)
             story['content'] = content
 
-            # Generate summary using Ollama Llama 3.2 model
-            # Uncomment and implement the summary generation if needed
+            # Generate summary using Ollama Llama 3.2 model (Uncomment if implemented)
             # summary = generate_summary(content)
             # story['summary'] = summary
 
         return story
-    else:
+    except Exception as e:
+        logging.error(f"Error processing story ID {story_id}: {e}")
         return None
 
 def main():
     """
     The main function to orchestrate fetching and processing stories.
     """
+    # Parse command-line arguments
+    #parser = argparse.ArgumentParser(description='Fetch Hacker News stories.')
+    #parser.add_argument('--summary', action='store_true', help='Generate summaries for the content')
+    #args = parser.parse_args()
+
     # Configure logging
     current_date = datetime.now().strftime("%d_%m_%Y")
     log_filename = f"./db/hackernews_{current_date}.log"
@@ -311,8 +432,9 @@ def main():
         print("No new stories to process. Exiting.")
         return
     
-    # Load blacklist
+    # Load blacklist and prioritization patterns
     blacklist = load_blacklist()
+    prioritise_patterns = load_prioritise()
     
     # Define the number of worker threads
     max_workers = 10  # Adjust based on your system's capabilities
@@ -321,7 +443,7 @@ def main():
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks to the executor
         future_to_story_id = {
-            executor.submit(process_story, sid, blacklist): sid for sid in stories_to_process
+            executor.submit(process_story, sid, blacklist, prioritise_patterns): sid for sid in stories_to_process
         }
         
         # Initialize progress bar
@@ -331,6 +453,9 @@ def main():
                 try:
                     story = future.result()
                     if story:
+                        # If summary generation is enabled
+                        #if args.summary and story['content']:
+                        #    story['summary'] = generate_summary(story['content'])
                         save_story(conn, story)
                 except Exception as e:
                     print(f"Exception occurred while processing story ID {story_id}: {e}")

@@ -116,23 +116,23 @@ def fetch_news_items(query=None,order_by=None):
     cursor = conn.cursor()
     if query:
         cursor.execute('''
-            SELECT id, title, by, url, score, content, summary 
+            SELECT id, title, by, url, score, content, summary, priority 
             FROM stories
             WHERE title LIKE ?
-            ORDER BY score DESC
+             priority DESC, score DESC
         ''', ('%' + query + '%',))
     else:
         if order_by:
             cursor.execute(f'''
-                SELECT id, title, by, url, score, content, summary
+                SELECT id, title, by, url, score, content, summary, priority
                 FROM stories
-                ORDER BY {order_by} DESC
+                ORDER BY {order_by} DESC, priority DESC, score DESC
             ''')
         else:
             cursor.execute('''
-                SELECT id, title, by, url, score, content, summary
+                SELECT id, title, by, url, score, content, summary, priority
                 FROM stories
-                ORDER BY score DESC
+                 ORDER BY priority DESC, score DESC
             ''')
     news_items = cursor.fetchall()
     conn.close()
@@ -178,7 +178,7 @@ def show(id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT id, title, by, url, content, summary, score, last_updated
+        SELECT id, title, by, url, content, summary, score, last_updated, priority
         FROM stories
         WHERE id = ?
     ''', (id,))

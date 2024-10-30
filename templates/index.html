@@ -5,10 +5,14 @@
 {% block content %}
     <ul class="news-list">
         {% for item in news_items %}
-        <li class="news-item">
+        <li class="news-item {% if item['priority'] > 0 %}priority-{{ item['priority'] }}{% endif %}">
             <p class="news-title">
                 <strong>{{ loop.index }}.</strong>
-                <a href="{{ item['url'] }}" target="_blank">{{ item['title'] }}</a> |
+                <a href="{{ item['url'] }}" target="_blank">{{ item['title'] }}</a>
+                {% if item['priority'] > 0 %}
+            <span class="priority-label">Priority {{ item['priority'] }}</span>
+                {% endif %}
+                 |
                 {% if item['content'] %}
                     <a href="{{ url_for('show', id=item['id']) }}" class="show-link">show</a>
                 {% else %}

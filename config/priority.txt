@@ -1,0 +1,7 @@
+# Prioritization Patterns
+regex:.*Spacex.*
+string:OpenAI
+regex:^.*AI.*$
+string:Perplexity
+string:llama
+string:clause
