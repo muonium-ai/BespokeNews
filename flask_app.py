@@ -5,12 +5,35 @@ import bleach
 import sqlite3
 from datetime import datetime
 import tldextract
+import logging
 
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
 
 # Initialize the Blacklist in the app's global context
 blacklist = Blacklist(blacklist_file="config/blacklist.txt")
+
+# Create a filter class to exclude static file requests
+class NoStaticFilter(logging.Filter):
+    def filter(self, record):
+        # Check if args exists and is a tuple with content
+        if hasattr(record, 'args') and isinstance(record.args, tuple) and len(record.args) > 0:
+            # Check if the first argument contains 'static'
+            return not (isinstance(record.args[0], str) and '/static/' in record.args[0].lower())
+        return True
+
+# Apply the filter to Werkzeug logger
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.addFilter(NoStaticFilter())
+
+# Define custom patterns to exclude static files, accounting for leading quotes
+custom_patterns = [
+    r'^"GET /static/',      # Matches "GET /static/...
+    r'^"HEAD /static/'      # Matches "HEAD /static/...
+]
+
+
+  # Uses default patterns
 
 app = Flask(__name__)
 
