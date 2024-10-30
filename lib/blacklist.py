@@ -5,46 +5,70 @@ import re
 
 
 class Blacklist:
-    def __init__(self, blacklist_file="config/blacklist.txt"):
+    def __init__(self, blacklist_files=["config/blacklist.txt"]):
         """
-        Initialize the Blacklist with patterns from a file.
+        Initialize the Blacklist with patterns from one or more files.
 
         Parameters:
-            blacklist_file (str): Path to the blacklist file.
+            blacklist_files (list of str): List of paths to blacklist files.
+                                           Defaults to ["config/blacklist.txt"].
         """
         self.regex_patterns = []
         self.string_patterns = []
-        self.load_blacklist(blacklist_file)
+        self.load_blacklists(blacklist_files)
 
-    def load_blacklist(self, blacklist_file):
+    def load_blacklists(self, blacklist_files):
         """
-        Load blacklist patterns from the specified file.
+        Load blacklist patterns from the specified list of files.
 
-        The blacklist file should have entries in the following format:
+        Each blacklist file should have entries in the following format:
         - Lines starting with 'regex:' are treated as regular expressions.
         - Lines starting with 'string:' are treated as plain string matches.
         - Lines starting with '#' are comments and are ignored.
         - Empty lines are ignored.
 
         Parameters:
-            blacklist_file (str): Path to the blacklist file.
+            blacklist_files (list of str): List of paths to blacklist files.
         """
-        if not os.path.exists(blacklist_file):
-            print(f"Blacklist file '{blacklist_file}' not found.")
-            return
+        for file in blacklist_files:
+            if not os.path.exists(file):
+                print(f"Blacklist file '{file}' not found. Skipping.")
+                continue
 
-        with open(blacklist_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue  # Ignore comments and empty lines
+            with open(file, "r") as f:
+                for line_number, line in enumerate(f, start=1):
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue  # Ignore comments and empty lines
 
-                if line.startswith("regex:"):
-                    pattern = line.split("regex:", 1)[1].strip()
-                    self.regex_patterns.append(pattern)
-                elif line.startswith("string:"):
-                    string_match = line.split("string:", 1)[1].strip().lower()
-                    self.string_patterns.append(string_match)
+                    if line.startswith("regex:"):
+                        pattern = line.split("regex:", 1)[1].strip()
+                        if self.validate_regex(pattern, file, line_number):
+                            self.regex_patterns.append(pattern)
+                    elif line.startswith("string:"):
+                        string_match = line.split("string:", 1)[1].strip().lower()
+                        self.string_patterns.append(string_match)
+                    else:
+                        print(f"Ignoring invalid line {line_number} in '{file}': {line}")
+
+    def validate_regex(self, pattern, file, line_number):
+        """
+        Validate the provided regex pattern.
+
+        Parameters:
+            pattern (str): The regex pattern to validate.
+            file (str): The file from which the pattern is loaded.
+            line_number (int): The line number of the pattern in the file.
+
+        Returns:
+            bool: True if the regex is valid, False otherwise.
+        """
+        try:
+            re.compile(pattern)
+            return True
+        except re.error as e:
+            print(f"Invalid regex pattern at line {line_number} in '{file}': {e}")
+            return False
 
     def is_blacklisted(self, url, title):
         """

@@ -14,7 +14,7 @@ import atexit
 from lib.blacklist import Blacklist
 
 # Initialize the Blacklist in the app's global context
-blacklist = Blacklist(blacklist_file="config/blacklist.txt")
+blacklist = Blacklist(blacklist_files=["config/blacklist.txt", "config/blacklist_urls.txt"])
 
 # Create a filter class to exclude static file requests
 class NoStaticFilter(logging.Filter):

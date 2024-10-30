@@ -25,7 +25,7 @@ HEADERS = {
 }
 
 # Initialize the Blacklist
-blacklist = Blacklist(blacklist_file="config/blacklist.txt")
+blacklist = Blacklist(blacklist_files=["config/blacklist.txt", "config/blacklist_urls.txt"])
 
 
 def load_prioritise(prioritise_file="config/priority.txt"):

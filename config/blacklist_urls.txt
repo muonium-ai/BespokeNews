@@ -3,6 +3,7 @@
 # Regular expression patterns
 regex:.*example\.com.*
 regex:^https?://(www\.)?spamwebsite\.net
+regex:\.(mp3|mp4|jpeg|png|jpg|pdf|torrent|zip|7z|rar|jar)$
 
 # Plain string matches
 string:phishing-site.com
@@ -15,3 +16,6 @@ string:wsj.com
 string:fastcompany.com
 string:sfgate.com
 string:sfchronicle.com
+
+# no plan to download videos
+string:https://www.youtube.com/
