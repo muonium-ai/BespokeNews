@@ -14,9 +14,10 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
    ```
 
 2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    uv run ruff check
+    ```
 
 ---
 

@@ -4,7 +4,7 @@ from markupsafe import Markup  # Updated import
 import bleach
 import sqlite3
 from datetime import datetime
-
+import tldextract
 
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
@@ -27,7 +27,7 @@ ALLOWED_ATTRIBUTES = {
     'img': ['src', 'alt', 'title'],
 }
 
-import tldextract
+
 
 def extract_main_domain(url):
     """
@@ -45,7 +45,7 @@ def extract_main_domain(url):
             return f"{ext.domain}.{ext.suffix}"
         else:
             return None
-    except Exception as e:
+    except Exception:
         # Log the error if necessary
         return None
 
@@ -163,7 +163,7 @@ def show(id):
         abort(404)
 
     # Check if the story is blacklisted
-    if is_blacklisted(news_item['url'], news_item['title']):
+    if blacklist.is_blacklisted(news_item['url'], news_item['title']):
         abort(404)
 
     return render_template('show.html', news_item=news_item)

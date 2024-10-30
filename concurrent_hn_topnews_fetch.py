@@ -1,6 +1,5 @@
 import requests
 import sqlite3
-import time
 from datetime import datetime
 import trafilatura
 from tqdm import tqdm

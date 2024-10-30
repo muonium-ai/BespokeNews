@@ -30,7 +30,7 @@ def generate_summary(content):
     try:
 
         # Initialize the Ollama client
-        client = ollama.Client()  # Adjust initialization if required by the client
+        #client = ollama.Client()  # Adjust initialization if required by the client
 
         # Define the prompt for summarization
         prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"

@@ -10,3 +10,6 @@ markupsafe
 bleach
 schedule
 tldextract
+shot-scraper
+uv
+ruff
