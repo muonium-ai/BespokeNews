@@ -46,32 +46,48 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
     gunicorn -w 4 -b 0.0.0.0:8000 flask_app:app
      ```
 ---
+## Features Completed
 
-## Features in Progress (TODO)
-
-- **Whitelist and Blacklist**  
+- **Whitelist and Prioritylist**  
   Apply a whitelist or blacklist to filter stories.
-  
-- **Dynamic User-Agent**  
-  Read the User-Agent from a text file instead of hardcoding.
 
 - **Parallel Downloads**  
   Explore parallelization for faster downloads.
 
+- **Separate Databases by Day**  
+  Organize data with separate databases for each day.
+
+- **Content Extraction and AI Summary**  
+  Extract main text, and generate AI summaries 
+
 - **Flask UI Improvements**  
   Make the Flask interface more user-friendly.
+
+- **WebUI Updates**  
+  Enable updating stories directly from the WebUI.
+  cron and recurring update implemented at 1 minute update
+  page refresh enabled for all pages for now at 1 minute interval
+
+- **Save Story Details Locally**  
+  Fetch and store story URLs, main text, and metadata locally.
+
+- **Cache Content**  
+  Cache stories for 24 hours to avoid redundant downloads.
+
+## Features in Progress (TODO)
+
+- **Dynamic User-Agent**  
+  Read the User-Agent from a text file instead of hardcoding.
+
+- **get a audio version of content**
+  possibly NotebookLM integration
+
+- **Podcast of Interesting Stories**  
+  List top stories as a short podcast.
 
 - **Pinokio (Possible Feature)**  
   Investigate new feature integration with "Pinokio".
 
-- **Separate Databases by Day**  
-  Organize data with separate databases for each day.
-
-- **WebUI Updates**  
-  Enable updating stories directly from the WebUI.
-
-- **Content Extraction and AI Summary**  
-  Extract main text, and generate AI summaries (NotebookLM integration).
 
 ---
 
@@ -80,14 +96,18 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
 - **Search Stories via Algolia API**  
   Example: [Hacker News Algolia Search](https://hn.algolia.com/?q=llama)
 
-- **Cache Content**  
-  Cache stories for 24 hours to avoid redundant downloads.
+- **screenshot of URLs**
+  image, pdf and html using shot-scraper
 
-- **Podcast of Interesting Stories**  
-  List top stories as a short podcast.
+- ** Extend HNLocal and LocalNews and fetch from other sites**
+  - google news
+  - specific sites
+  - rss feeds
+  - podcast
 
-- **Save Story Details Locally**  
-  Fetch and store story URLs, main text, and metadata locally.
+
+
+
 
 ---
 
