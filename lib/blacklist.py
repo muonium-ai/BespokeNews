@@ -3,6 +3,7 @@
 import os
 import re
 
+
 class Blacklist:
     def __init__(self, blacklist_file="config/blacklist.txt"):
         """

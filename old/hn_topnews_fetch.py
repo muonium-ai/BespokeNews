@@ -10,8 +10,6 @@ import urllib3
 import re
 
 
-
-
 def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
     """
     Load blacklist patterns from a file.
@@ -29,7 +27,7 @@ def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
         dict: A dictionary with two keys 'regex' and 'string', containing lists of patterns.
     """
     blacklist_data = {"regex": [], "string": []}
-    
+
     if os.path.exists(blacklist_file):
         with open(blacklist_file, "r") as f:
             for line in f:
@@ -44,6 +42,7 @@ def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
     else:
         print(f"Blacklist file '{blacklist_file}' not found.")
     return blacklist_data
+
 
 def is_blacklisted(url, blacklist):
     """
@@ -71,8 +70,6 @@ def is_blacklisted(url, blacklist):
     return False
 
 
-
-
 # Suppress InsecureRequestWarning due to verify=False in requests.get
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -85,10 +82,11 @@ HEADERS = {
     )
 }
 
+
 def create_database():
     # Create folder 'db' if it does not exist
-    if not os.path.exists('db'):
-        os.makedirs('db')
+    if not os.path.exists("db"):
+        os.makedirs("db")
 
     # Get current date in dd_mm_yyyy format
     current_date = datetime.now().strftime("%d_%m_%Y")
@@ -101,7 +99,7 @@ def create_database():
     cursor = conn.cursor()
 
     # Modify the table creation to include the 'summary' field
-    cursor.execute('''
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY,
             title TEXT,
@@ -112,35 +110,38 @@ def create_database():
             summary TEXT,
             last_updated TIMESTAMP
         )
-    ''')
+    """)
 
     # Add 'summary' column if it doesn't exist (for existing databases)
     cursor.execute("PRAGMA table_info(stories)")
     columns = [column[1] for column in cursor.fetchall()]
-    if 'summary' not in columns:
+    if "summary" not in columns:
         cursor.execute("ALTER TABLE stories ADD COLUMN summary TEXT")
 
     conn.commit()
     return conn
 
+
 def fetch_top_story_ids():
-    top_stories_url = 'https://hacker-news.firebaseio.com/v0/topstories.json'
+    top_stories_url = "https://hacker-news.firebaseio.com/v0/topstories.json"
     response = requests.get(top_stories_url)
     if response.status_code == 200:
         story_ids = response.json()
         return story_ids
     else:
-        print('Error fetching top stories.')
+        print("Error fetching top stories.")
         return []
 
+
 def fetch_story_details(story_id):
-    story_url = f'https://hacker-news.firebaseio.com/v0/item/{story_id}.json'
+    story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
     response = requests.get(story_url)
     if response.status_code == 200:
         return response.json()
     else:
-        print(f'Error fetching story ID {story_id}.')
+        print(f"Error fetching story ID {story_id}.")
         return None
+
 
 def extract_content(url, timeout=10):
     blacklist = load_blacklist()
@@ -152,56 +153,69 @@ def extract_content(url, timeout=10):
                 content = trafilatura.extract(downloaded, url=url)
                 return content
             else:
-                print(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
-                logging.error(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
+                print(
+                    f"Error fetching content from URL: {url}, Status Code: {response.status_code}"
+                )
+                logging.error(
+                    f"Error fetching content from URL: {url}, Status Code: {response.status_code}"
+                )
                 return None
         except Exception as e:
-            print(f'Exception while fetching content from URL: {url}')
-            print(f'Error: {e}')
+            print(f"Exception while fetching content from URL: {url}")
+            print(f"Error: {e}")
             return None
     else:
-        print(f'URL is blacklisted, skipping it : {url}')
+        print(f"URL is blacklisted, skipping it : {url}")
         return None
 
 
 def story_exists(cursor, story_id):
-    cursor.execute('SELECT id FROM stories WHERE id = ?', (story_id,))
+    cursor.execute("SELECT id FROM stories WHERE id = ?", (story_id,))
     return cursor.fetchone() is not None
+
 
 def save_story(conn, story):
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute(
+        """
         INSERT INTO stories (id, title, by, score, url, content, summary, last_updated)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        story['id'],
-        story.get('title'),
-        story.get('by'),
-        story.get('score'),
-        story.get('url'),
-        story.get('content'),
-        story.get('summary'),
-        story.get('last_updated')
-    ))
+    """,
+        (
+            story["id"],
+            story.get("title"),
+            story.get("by"),
+            story.get("score"),
+            story.get("url"),
+            story.get("content"),
+            story.get("summary"),
+            story.get("last_updated"),
+        ),
+    )
     conn.commit()
+
 
 def update_story(conn, story):
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute(
+        """
         UPDATE stories
         SET title = ?, by = ?, score = ?, url = ?, content = ?, summary = ?, last_updated = ?
         WHERE id = ?
-    ''', (
-        story.get('title'),
-        story.get('by'),
-        story.get('score'),
-        story.get('url'),
-        story.get('content'),
-        story.get('summary'),
-        story.get('last_updated'),
-        story['id']
-    ))
+    """,
+        (
+            story.get("title"),
+            story.get("by"),
+            story.get("score"),
+            story.get("url"),
+            story.get("content"),
+            story.get("summary"),
+            story.get("last_updated"),
+            story["id"],
+        ),
+    )
     conn.commit()
+
 
 def main():
     # Configure logging
@@ -214,31 +228,30 @@ def main():
     total_stories = len(top_story_ids)
     print(f"Total stories to process: {total_stories}")
 
-
-    for story_id in tqdm(top_story_ids, desc='Processing stories'):
+    for story_id in tqdm(top_story_ids, desc="Processing stories"):
         if story_exists(cursor, story_id):
             continue
 
         story_details = fetch_story_details(story_id)
         if story_details:
             story = {
-                'id': story_details.get('id'),
-                'title': story_details.get('title'),
-                'by': story_details.get('by'),
-                'score': story_details.get('score'),
-                'url': story_details.get('url'),
-                'content': None,
-                'summary': None,
-                'last_updated': datetime.now()
+                "id": story_details.get("id"),
+                "title": story_details.get("title"),
+                "by": story_details.get("by"),
+                "score": story_details.get("score"),
+                "url": story_details.get("url"),
+                "content": None,
+                "summary": None,
+                "last_updated": datetime.now(),
             }
 
-            if story['url']:
-                content = extract_content(story['url'], timeout=10)
-                story['content'] = content
+            if story["url"]:
+                content = extract_content(story["url"], timeout=10)
+                story["content"] = content
 
                 # Generate summary using Ollama Llama 3.2 model
-                #summary = generate_summary(content)
-                #story['summary'] = #summary
+                # summary = generate_summary(content)
+                # story['summary'] = #summary
 
             save_story(conn, story)
 
@@ -247,5 +260,6 @@ def main():
 
     conn.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

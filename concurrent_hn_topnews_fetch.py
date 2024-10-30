@@ -8,6 +8,7 @@ import os
 import urllib3
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
 
@@ -88,6 +89,7 @@ def is_prioritised(url, title, prioritise_patterns):
 
     return 0  # Default priority
 
+
 def create_database():
     """
     Create the SQLite database and the 'stories' table if they don't exist.
@@ -96,8 +98,8 @@ def create_database():
         sqlite3.Connection: The database connection object.
     """
     # Create folder 'db' if it does not exist
-    if not os.path.exists('db'):
-        os.makedirs('db')
+    if not os.path.exists("db"):
+        os.makedirs("db")
 
     # Get current date in dd_mm_yyyy format
     current_date = datetime.now().strftime("%d_%m_%Y")
@@ -110,7 +112,7 @@ def create_database():
     cursor = conn.cursor()
 
     # Modify the table creation to include the 'summary' and 'priority' fields
-    cursor.execute('''
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY,
             title TEXT,
@@ -122,20 +124,21 @@ def create_database():
             priority INTEGER DEFAULT 0,
             last_updated TIMESTAMP
         )
-    ''')
+    """)
 
     # Add 'summary' column if it doesn't exist (for existing databases)
     cursor.execute("PRAGMA table_info(stories)")
     columns = [column[1] for column in cursor.fetchall()]
-    if 'summary' not in columns:
+    if "summary" not in columns:
         cursor.execute("ALTER TABLE stories ADD COLUMN summary TEXT")
 
     # Add 'priority' column if it doesn't exist (for existing databases)
-    if 'priority' not in columns:
+    if "priority" not in columns:
         cursor.execute("ALTER TABLE stories ADD COLUMN priority INTEGER DEFAULT 0")
 
     conn.commit()
     return conn
+
 
 def fetch_top_story_ids():
     """
@@ -144,18 +147,19 @@ def fetch_top_story_ids():
     Returns:
         list: A list of top story IDs.
     """
-    top_stories_url = 'https://hacker-news.firebaseio.com/v0/topstories.json'
+    top_stories_url = "https://hacker-news.firebaseio.com/v0/topstories.json"
     try:
         response = requests.get(top_stories_url, timeout=10)
         if response.status_code == 200:
             story_ids = response.json()
             return story_ids
         else:
-            print('Error fetching top stories.')
+            print("Error fetching top stories.")
             return []
     except Exception as e:
         print(f"Exception while fetching top stories: {e}")
         return []
+
 
 def fetch_story_details(story_id):
     """
@@ -167,19 +171,24 @@ def fetch_story_details(story_id):
     Returns:
         dict or None: The story details if successful, None otherwise.
     """
-    story_url = f'https://hacker-news.firebaseio.com/v0/item/{story_id}.json'
+    story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
     try:
         response = requests.get(story_url, timeout=10)
         if response.status_code == 200:
             return response.json()
         else:
-            print(f'Error fetching story ID {story_id}. Status Code: {response.status_code}')
-            logging.error(f'Error fetching story ID {story_id}. Status Code: {response.status_code}')
+            print(
+                f"Error fetching story ID {story_id}. Status Code: {response.status_code}"
+            )
+            logging.error(
+                f"Error fetching story ID {story_id}. Status Code: {response.status_code}"
+            )
             return None
     except Exception as e:
-        print(f'Exception while fetching story ID {story_id}: {e}')
-        logging.error(f'Exception while fetching story ID {story_id}: {e}')
+        print(f"Exception while fetching story ID {story_id}: {e}")
+        logging.error(f"Exception while fetching story ID {story_id}: {e}")
         return None
+
 
 def extract_content(url, timeout=10, blacklist=None):
     """
@@ -201,17 +210,24 @@ def extract_content(url, timeout=10, blacklist=None):
                 content = trafilatura.extract(downloaded, url=url)
                 return content
             else:
-                print(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
-                logging.error(f'Error fetching content from URL: {url}, Status Code: {response.status_code}')
+                print(
+                    f"Error fetching content from URL: {url}, Status Code: {response.status_code}"
+                )
+                logging.error(
+                    f"Error fetching content from URL: {url}, Status Code: {response.status_code}"
+                )
                 return None
         except Exception as e:
-            print(f'Exception while fetching content from URL: {url}')
-            print(f'Error: {e}')
-            logging.error(f'Exception while fetching content from URL: {url}, Error: {e}')
+            print(f"Exception while fetching content from URL: {url}")
+            print(f"Error: {e}")
+            logging.error(
+                f"Exception while fetching content from URL: {url}, Error: {e}"
+            )
             return None
     else:
-        print(f'URL is blacklisted, skipping it: {url}')
+        print(f"URL is blacklisted, skipping it: {url}")
         return None
+
 
 def save_story(conn, story):
     """
@@ -223,20 +239,23 @@ def save_story(conn, story):
     """
     try:
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute(
+            """
             INSERT INTO stories (id, title, by, score, url, content, summary, priority, last_updated)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            story['id'],
-            story.get('title'),
-            story.get('by'),
-            story.get('score'),
-            story.get('url'),
-            story.get('content'),
-            story.get('summary'),
-            story.get('priority'),
-            story.get('last_updated')
-        ))
+        """,
+            (
+                story["id"],
+                story.get("title"),
+                story.get("by"),
+                story.get("score"),
+                story.get("url"),
+                story.get("content"),
+                story.get("summary"),
+                story.get("priority"),
+                story.get("last_updated"),
+            ),
+        )
         conn.commit()
     except sqlite3.IntegrityError:
         print(f"Story ID {story['id']} already exists in the database.")
@@ -244,6 +263,7 @@ def save_story(conn, story):
     except Exception as e:
         print(f"Error saving story ID {story['id']}: {e}")
         logging.error(f"Error saving story ID {story['id']}: {e}")
+
 
 def process_story(story_id, blacklist, prioritise_patterns):
     """
@@ -263,45 +283,44 @@ def process_story(story_id, blacklist, prioritise_patterns):
             return None
 
         # Check if the story is blacklisted
-        if blacklist.is_blacklisted(story_details.get('url'), blacklist):
+        if blacklist.is_blacklisted(story_details.get("url"), blacklist):
             return None
 
         # Assign priority
         priority = is_prioritised(
-            story_details.get('url'),
-            story_details.get('title'),
-            prioritise_patterns
+            story_details.get("url"), story_details.get("title"), prioritise_patterns
         )
 
         story = {
-            'id': story_details.get('id'),
-            'title': story_details.get('title'),
-            'by': story_details.get('by'),
-            'score': story_details.get('score'),
-            'url': story_details.get('url'),
-            'content': None,
-            'summary': None,
-            'priority': priority,
-            'last_updated': datetime.now()
+            "id": story_details.get("id"),
+            "title": story_details.get("title"),
+            "by": story_details.get("by"),
+            "score": story_details.get("score"),
+            "url": story_details.get("url"),
+            "content": None,
+            "summary": None,
+            "priority": priority,
+            "last_updated": datetime.now(),
         }
 
-        if story['url']:
-            content = extract_content(story['url'], timeout=10, blacklist=blacklist)
-            story['content'] = content
+        if story["url"]:
+            content = extract_content(story["url"], timeout=10, blacklist=blacklist)
+            story["content"] = content
 
         return story
     except Exception as e:
         logging.error(f"Error processing story ID {story_id}: {e}")
         return None
 
+
 def main():
     """
     The main function to orchestrate fetching and processing stories.
     """
     # Parse command-line arguments
-    #parser = argparse.ArgumentParser(description='Fetch Hacker News stories.')
-    #parser.add_argument('--summary', action='store_true', help='Generate summaries for the content')
-    #args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description='Fetch Hacker News stories.')
+    # parser.add_argument('--summary', action='store_true', help='Generate summaries for the content')
+    # args = parser.parse_args()
 
     # Configure logging
     current_date = datetime.now().strftime("%d_%m_%Y")
@@ -309,13 +328,13 @@ def main():
     logging.basicConfig(
         filename=log_filename,
         level=logging.INFO,
-        format='%(asctime)s %(levelname)s:%(message)s'
+        format="%(asctime)s %(levelname)s:%(message)s",
     )
-    
+
     # Create database
     conn = create_database()
     cursor = conn.cursor()
-    
+
     # Fetch existing story IDs to avoid reprocessing
     try:
         cursor.execute("SELECT id FROM stories")
@@ -324,7 +343,7 @@ def main():
         print(f"Error fetching existing story IDs: {e}")
         logging.error(f"Error fetching existing story IDs: {e}")
         existing_ids = set()
-    
+
     # Fetch top story IDs
     top_story_ids = fetch_top_story_ids()
     if not top_story_ids:
@@ -332,31 +351,31 @@ def main():
         return
     total_stories = len(top_story_ids)
     print(f"Total stories fetched from Hacker News: {total_stories}")
-    
+
     # Filter out already processed stories
     stories_to_process = [sid for sid in top_story_ids if sid not in existing_ids]
     total_to_process = len(stories_to_process)
     print(f"Total new stories to process: {total_to_process}")
-    
+
     if total_to_process == 0:
         print("No new stories to process. Exiting.")
         return
-    
 
     prioritise_patterns = load_prioritise()
-    
+
     # Define the number of worker threads
     max_workers = 10  # Adjust based on your system's capabilities
-    
+
     # Initialize ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks to the executor
         future_to_story_id = {
-            executor.submit(process_story, sid, blacklist, prioritise_patterns): sid for sid in stories_to_process
+            executor.submit(process_story, sid, blacklist, prioritise_patterns): sid
+            for sid in stories_to_process
         }
-        
+
         # Initialize progress bar
-        with tqdm(total=total_to_process, desc='Processing stories') as pbar:
+        with tqdm(total=total_to_process, desc="Processing stories") as pbar:
             for future in as_completed(future_to_story_id):
                 story_id = future_to_story_id[future]
                 try:
@@ -364,14 +383,19 @@ def main():
                     if story:
                         save_story(conn, story)
                 except Exception as e:
-                    print(f"Exception occurred while processing story ID {story_id}: {e}")
-                    logging.error(f"Exception occurred while processing story ID {story_id}: {e}")
+                    print(
+                        f"Exception occurred while processing story ID {story_id}: {e}"
+                    )
+                    logging.error(
+                        f"Exception occurred while processing story ID {story_id}: {e}"
+                    )
                 finally:
                     pbar.update(1)
-    
+
     # Close the database connection
     conn.close()
     print("Processing completed.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

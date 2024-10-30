@@ -19,6 +19,12 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
     uv run ruff check
     ```
 
+3. ** Pre-Commit **
+    ```bash
+    uv run ruff check
+    ruff format
+    ```
+
 ---
 
 ## Usage
