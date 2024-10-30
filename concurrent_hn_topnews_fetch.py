@@ -312,6 +312,12 @@ def process_story(story_id, blacklist, prioritise_patterns):
         logging.error(f"Error processing story ID {story_id}: {e}")
         return None
 
+# Debug function to print URL for a given ID
+def debug_url(story_id,id_to_url):
+    if story_id in id_to_url:
+        print(f"ID: {story_id} -> URL: {id_to_url[story_id]}")
+    else:
+        print(f"ID {story_id} not found in database")
 
 def main():
     """
@@ -337,8 +343,31 @@ def main():
 
     # Fetch existing story IDs to avoid reprocessing
     try:
-        cursor.execute("SELECT id FROM stories")
-        existing_ids = set(row[0] for row in cursor.fetchall())
+        #cursor.execute("SELECT id FROM stories")
+        #existing_ids = set(row[0] for row in cursor.fetchall())
+        # Execute query and fetch all results
+        cursor.execute("SELECT * FROM stories")
+        rows = cursor.fetchall()
+        columns = [description[0] for description in cursor.description]
+
+        # Create index mappings
+        id_index = columns.index('id')
+        url_index = columns.index('url')
+
+        # Store IDs and create a mapping of id to url for debugging
+        existing_ids = set()
+        id_to_url = {}
+
+        for row in rows:
+            story_id = row[id_index]
+            existing_ids.add(story_id)
+            id_to_url[story_id] = row[url_index]
+        
+
+
+            # Example usage:
+            # debug_url(123)  # Replace 123 with any ID you want to check
+
     except Exception as e:
         print(f"Error fetching existing story IDs: {e}")
         logging.error(f"Error fetching existing story IDs: {e}")
@@ -355,6 +384,10 @@ def main():
     # Filter out already processed stories
     stories_to_process = [sid for sid in top_story_ids if sid not in existing_ids]
     total_to_process = len(stories_to_process)
+    print(stories_to_process)
+    for story_id in stories_to_process:
+        print(f"ID: {story_id}")
+        debug_url(story_id,id_to_url)
     print(f"Total new stories to process: {total_to_process}")
 
     if total_to_process == 0:
