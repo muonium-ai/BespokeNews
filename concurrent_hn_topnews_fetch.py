@@ -9,6 +9,8 @@ import os
 import urllib3
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+# Import the Blacklist class from the lib.blacklist module
+from lib.blacklist import Blacklist
 
 # Suppress InsecureRequestWarning due to verify=False in requests.get
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -22,38 +24,9 @@ HEADERS = {
     )
 }
 
-def load_blacklist(blacklist_file="config/blacklist_urls.txt"):
-    """
-    Load blacklist patterns from a file.
+# Initialize the Blacklist
+blacklist = Blacklist(blacklist_file="config/blacklist.txt")
 
-    The blacklist file should have entries in the following format:
-    - Lines starting with 'regex:' are treated as regular expressions.
-    - Lines starting with 'string:' are treated as plain string matches.
-    - Lines starting with '#' are comments and are ignored.
-    - Empty lines are ignored.
-
-    Parameters:
-        blacklist_file (str): Path to the blacklist file.
-
-    Returns:
-        dict: A dictionary with two keys 'regex' and 'string', containing lists of patterns.
-    """
-    blacklist_data = {"regex": [], "string": []}
-
-    if os.path.exists(blacklist_file):
-        with open(blacklist_file, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#"):  # Ignore comments and empty lines
-                    if line.startswith("regex:"):
-                        pattern = line.split("regex:", 1)[1].strip()
-                        blacklist_data["regex"].append(pattern)
-                    elif line.startswith("string:"):
-                        string_match = line.split("string:", 1)[1].strip()
-                        blacklist_data["string"].append(string_match)
-    else:
-        print(f"Blacklist file '{blacklist_file}' not found.")
-    return blacklist_data
 
 def load_prioritise(prioritise_file="config/priority.txt"):
     """
@@ -88,30 +61,6 @@ def load_prioritise(prioritise_file="config/priority.txt"):
         print(f"Prioritise file '{prioritise_file}' not found.")
     return prioritise_data
 
-def is_blacklisted(url, blacklist):
-    """
-    Check if the URL matches any blacklist patterns.
-
-    Parameters:
-        url (str): The URL to check.
-        blacklist (dict): The blacklist data loaded from 'load_blacklist'.
-
-    Returns:
-        bool: True if the URL is blacklisted, False otherwise.
-    """
-    url = str(url) if url else ""
-
-    # Check against regex patterns
-    for pattern in blacklist.get("regex", []):
-        if re.search(pattern, url):
-            return True
-
-    # Check against plain string matches
-    for string in blacklist.get("string", []):
-        if string.lower() in url.lower():
-            return True
-
-    return False
 
 def is_prioritised(url, title, prioritise_patterns):
     """
@@ -245,7 +194,7 @@ def extract_content(url, timeout=10, blacklist=None):
     Returns:
         str or None: The extracted content if successful, None otherwise.
     """
-    if not is_blacklisted(url, blacklist):
+    if not blacklist.is_blacklisted(url, blacklist):
         try:
             response = requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
             if response.status_code == 200:
@@ -263,40 +212,6 @@ def extract_content(url, timeout=10, blacklist=None):
             return None
     else:
         print(f'URL is blacklisted, skipping it: {url}')
-        return None
-
-def generate_summary(content):
-    """
-    Generate a summary of the content using the Ollama Llama 3.2 model.
-
-    Parameters:
-        content (str): The content to summarize.
-
-    Returns:
-        str or None: The generated summary if successful, None otherwise.
-    """
-    if not content:
-        return None
-
-    try:
-        # Initialize the Ollama client
-        client = ollama.Client()  # Adjust initialization if required by the client
-
-        # Define the prompt for summarization
-        prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"
-
-        response = ollama.chat(model='llama3.2', messages=[
-            {
-                'role': 'user',
-                'content': prompt,
-            }])
-        
-        summary = response['message']['content'].strip()
-
-        return summary
-    except Exception as e:
-        print(f'Error generating summary: {e}')
-        logging.error(f'Error generating summary: {e}')
         return None
 
 def save_story(conn, story):
@@ -349,7 +264,7 @@ def process_story(story_id, blacklist, prioritise_patterns):
             return None
 
         # Check if the story is blacklisted
-        if is_blacklisted(story_details.get('url'), blacklist):
+        if blacklist.is_blacklisted(story_details.get('url'), blacklist):
             return None
 
         # Assign priority
@@ -374,10 +289,6 @@ def process_story(story_id, blacklist, prioritise_patterns):
         if story['url']:
             content = extract_content(story['url'], timeout=10, blacklist=blacklist)
             story['content'] = content
-
-            # Generate summary using Ollama Llama 3.2 model (Uncomment if implemented)
-            # summary = generate_summary(content)
-            # story['summary'] = summary
 
         return story
     except Exception as e:
@@ -432,8 +343,7 @@ def main():
         print("No new stories to process. Exiting.")
         return
     
-    # Load blacklist and prioritization patterns
-    blacklist = load_blacklist()
+
     prioritise_patterns = load_prioritise()
     
     # Define the number of worker threads
@@ -453,9 +363,6 @@ def main():
                 try:
                     story = future.result()
                     if story:
-                        # If summary generation is enabled
-                        #if args.summary and story['content']:
-                        #    story['summary'] = generate_summary(story['content'])
                         save_story(conn, story)
                 except Exception as e:
                     print(f"Exception occurred while processing story ID {story_id}: {e}")
