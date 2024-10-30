@@ -42,7 +42,7 @@ def get_stories_without_summary(conn):
     """
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, content FROM stories WHERE content IS NOT NULL AND summary IS NULL"
+        "SELECT id, content FROM stories WHERE content IS NOT NULL AND length(trim(content)) > 0  AND summary IS NULL"
     )
     stories = cursor.fetchall()
     return stories
