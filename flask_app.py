@@ -6,6 +6,9 @@ import sqlite3
 from datetime import datetime
 import tldextract
 import logging
+import sys
+import signal
+import atexit
 
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
@@ -37,6 +40,27 @@ custom_patterns = [
 
 app = Flask(__name__)
 
+# Store start time globally
+start_time = datetime.now()
+print(f"\n HNLocal started at: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+def cleanup():
+    """Function to run when the app exits"""
+    end_time = datetime.now()
+    runtime = end_time - start_time
+    print(f"\nApplication stopped at: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Total runtime: {runtime}")
+
+# Register the cleanup function to run at exit
+atexit.register(cleanup)
+
+
+# Handle Ctrl+C gracefully
+def signal_handler(sig, frame):
+    print('\nCtrl+C pressed...')
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 # Allowed HTML tags and attributes for sanitization
 ALLOWED_TAGS = [
