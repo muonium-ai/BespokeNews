@@ -17,5 +17,9 @@ string:fastcompany.com
 string:sfgate.com
 string:sfchronicle.com
 
+# paywall
+string:https://www.theguardian.com/
+
+
 # no plan to download videos
 string:https://www.youtube.com/
