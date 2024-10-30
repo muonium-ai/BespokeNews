@@ -96,14 +96,25 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
 - **Search Stories via Algolia API**  
   Example: [Hacker News Algolia Search](https://hn.algolia.com/?q=llama)
 
-- **screenshot of URLs**
+- **Screenshot of URLs**
   image, pdf and html using shot-scraper
 
-- ** Extend HNLocal and LocalNews and fetch from other sites**
+- **Extend HNLocal and LocalNews and fetch from other sites**
   - google news
   - specific sites
   - rss feeds
   - podcast
+
+- **Search links or search api**
+  - perplexity search link
+  - searchgpt
+  - github search, trending
+  - stackoverflow
+  - ddg search
+  - google
+  - wikipedia
+  - stocks
+
 
 
 
