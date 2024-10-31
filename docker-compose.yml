@@ -1,0 +1,20 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+    restart: unless-stopped
+
+  # Alternatively, you can run the background script as a separate service
+  worker:
+    build: .
+    volumes:
+      - .:/app
+    command: python concurrent_cron.py
+    restart: unless-stopped
