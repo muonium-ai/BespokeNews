@@ -43,12 +43,12 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
 
    - **Terminal 2**: Run the Flask app
     ```bash
-    python .\flask_app.py
+    python .\bn_app.py
      ```
 
     ### run in production mode
     ```bash
-    gunicorn -w 4 -b 0.0.0.0:8000 flask_app:app
+    gunicorn -w 4 -b 0.0.0.0:8000 bn_app:app
      ```
 ---
 ## Features Completed
