@@ -1,5 +1,8 @@
 
-# Hacker News Stories Fetcher
+# Bespoke News
+
+## old project name (hnlocal)
+it started as Hacker News Stories reader with filter
 
 A tool to **fetch and store Hacker News stories locally**, with a built-in Flask app for viewing and managing the data.
 
@@ -9,8 +12,10 @@ A tool to **fetch and store Hacker News stories locally**, with a built-in Flask
 
 1. **Create a Conda environment:**
    ```bash
-   conda create -n hnlocal -y
-   conda activate hnlocal
+   git clone git@github.com:muonium-ai/BespokeNews.git
+   cd BespokeNews
+   conda create -n bespokenews -y
+   conda activate bespokenews
    ```
 
 2. **Install dependencies:**

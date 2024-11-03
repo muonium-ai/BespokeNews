@@ -1,7 +1,6 @@
 *.db
 old/
 *.log
-db/
 temp/
 *.pyc
 __pycache__/
