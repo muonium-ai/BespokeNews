@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hacker News Local - Top Stories</title>
+    <title>BespokeNews</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta tag -->
     <link rel="icon" type="image/png" href="/static/favicon-48x48.png" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
@@ -238,14 +238,14 @@
     <div class="container">
         <!-- Header with navigation links and search form -->
         <h1>
-            <span style="float: left;"> HNLocal </span>
-            <span style="float: left;"> | <a href="/">Top Stories</a> </span>
-            <span style="float: left;"> | <a href="/latest">Latest Stories </a></span><span style="float: left;"> | </span>
+            <span style="float: left;"> BespokeNews </span>
+            <span style="float: left;"> | <a href="/hackernews/">Top Stories</a> </span>
+            <span style="float: left;"> | <a href="/hackernews/latest">Latest Stories </a></span><span style="float: left;"> | </span>
             <span id="countdown" style="font-size: 14px; color: #555;">
                 Page will refresh in 1m 0s
             </span>
             <span style="float: right;">
-                <form action="/search" method="get" style="display: inline;">
+                <form action="/hackernews/search" method="get" style="display: inline;">
                     <input type="text" name="q" placeholder="Search" value="{{ request.args.get('q', '') }}">
                     <input type="submit" value="Search">
                 </form>

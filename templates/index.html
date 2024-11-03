@@ -14,7 +14,7 @@
                 {% endif %}
                  |
                 {% if item['content'] %}
-                    <a href="{{ url_for('show', id=item['id']) }}" class="show-link">show</a>
+                    <a href="/hackernews/show/{{item['id']}}" class="show-link">show</a>
                 {% else %}
                     <span class="disabled-link">show</span>
                 {% endif %}

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, abort
+from flask import Flask, render_template, request, abort, redirect, url_for
 from markdown import markdown
 from markupsafe import Markup  # Updated import
 import bleach
@@ -9,6 +9,11 @@ import logging
 import sys
 import signal
 import atexit
+
+# app blueprints to load multiple apps
+from apps.rss import rss_bp
+from apps.hn import hn
+
 
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
@@ -190,54 +195,17 @@ def filter_news_items(news_items):
 def init():
     """initialize"""
 
-
 @app.route("/")
 def index():
-    news_items = fetch_news_items()
-    filtered_news = filter_news_items(news_items)
-    return render_template("index.html", news_items=filtered_news)
+    return redirect('/hackernews')
 
+@app.route("/favicon.ico")
+def favicon():
+    # send static/favicon.ico file
+    return app.send_static_file("favicon.ico")
 
-@app.route("/latest")
-def latest():
-    news_items = fetch_news_items(order_by="last_updated")
-    filtered_news = filter_news_items(news_items)
-    return render_template("index.html", news_items=filtered_news)
-
-
-@app.route("/search")
-def search():
-    query = request.args.get("q", "")
-    news_items = fetch_news_items(query=query)
-    filtered_news = filter_news_items(news_items)
-    return render_template("index.html", news_items=filtered_news, query=query)
-
-
-@app.route("/show/<int:id>")
-def show(id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        SELECT id, title, by, url, content, summary, score, last_updated, priority
-        FROM stories
-        WHERE id = ?
-    """,
-        (id,),
-    )
-    news_item = cursor.fetchone()
-    conn.close()
-
-    if news_item is None:
-        # Story with the given ID does not exist
-        abort(404)
-
-    # Check if the story is blacklisted
-    if blacklist.is_blacklisted(news_item["url"], news_item["title"]):
-        abort(404)
-
-    return render_template("show.html", news_item=news_item)
-
+app.register_blueprint(rss_bp,name="rss2",url_prefix='/rss')
+app.register_blueprint(hn,url_prefix='/hackernews')
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -245,4 +213,4 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
