@@ -12,7 +12,7 @@ def fetch_news():
     print(f"{datetime.now()}: Fetching news...")
     try:
         # Run the news fetching script
-        subprocess.run(["python", "concurrent_hn_topnews_fetch.py"], check=True)
+        subprocess.run(["python", "./agents/concurrent_hn_topnews_fetch.py"], check=True)
         logging.info(f"{datetime.now()}: Successfully fetched news.")
     except subprocess.CalledProcessError as e:
         logging.error(f"{datetime.now()}: Error fetching news - {e}")
@@ -25,7 +25,7 @@ def generate_summaries():
     print(f"{datetime.now()}: Generating summaries...")
     try:
         # Run the summary generation script
-        subprocess.run(["python", "concurrent_generate_ai_summary.py"], check=True)
+        subprocess.run(["python", "./agents/concurrent_generate_ai_summary.py"], check=True)
         logging.info(f"{datetime.now()}: Successfully generated summaries.")
     except subprocess.CalledProcessError as e:
         logging.error(f"{datetime.now()}: Error generating summaries - {e}")

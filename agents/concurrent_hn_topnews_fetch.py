@@ -7,10 +7,16 @@ import logging
 import os
 import urllib3
 import re
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Add the parent directory to the sys.path to ensure lib can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
+
 
 # Suppress InsecureRequestWarning due to verify=False in requests.get
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -98,14 +104,16 @@ def create_database():
         sqlite3.Connection: The database connection object.
     """
     # Create folder 'db' if it does not exist
-    if not os.path.exists("db"):
-        os.makedirs("db")
+    db_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'db'))
+    if not os.path.exists(db_dir):
+        os.makedirs(db_dir)
+
 
     # Get current date in dd_mm_yyyy format
     current_date = datetime.now().strftime("%d_%m_%Y")
 
     # Create the database name with the current date
-    db_name = f"./db/hackernews_{current_date}.db"
+    db_name = os.path.join(db_dir, f"hackernews_{current_date}.db")
 
     print(f"Database: {db_name}")
     conn = sqlite3.connect(db_name)

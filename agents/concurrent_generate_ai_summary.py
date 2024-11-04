@@ -5,14 +5,19 @@ from datetime import datetime
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import ollama
+import sys
 
+# Add the parent directory to the sys.path to ensure lib can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def get_database_name():
     """
     Generate the database name based on the current date.
     """
+    # Create folder 'db' if it does not exist
+    db_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'db'))
     current_date = datetime.now().strftime("%d_%m_%Y")
-    db_name = f"./db/hackernews_{current_date}.db"
+    db_name = os.path.join(db_dir, f"hackernews_{current_date}.db")
     return db_name
 
 
