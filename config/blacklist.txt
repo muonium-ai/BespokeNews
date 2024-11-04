@@ -30,6 +30,7 @@ string:boeing
 string:IBM
 string:WordPress
 string:Ford
+string:Vmware
 regex:(?i)\b(T-Mobile|AT&T)\b
 
 # ignore these technologies/practices
