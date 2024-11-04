@@ -17,7 +17,7 @@ COPY . .
 EXPOSE 5000
 
 # Set environment variables
-ENV FLASK_APP=flask_app.py
+ENV FLASK_APP=bn_app.py
 ENV FLASK_ENV=production
 
 # We'll use a shell script to manage multiple processes
