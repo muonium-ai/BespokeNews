@@ -13,6 +13,7 @@ import atexit
 # app blueprints to load multiple apps
 from apps.rss import rss_bp
 from apps.hn import hn
+from apps.hf import hf
 
 
 # Import the Blacklist class from the lib.blacklist module
@@ -129,6 +130,7 @@ def favicon():
 
 app.register_blueprint(rss_bp,name="rss2",url_prefix='/rss')
 app.register_blueprint(hn,url_prefix='/hackernews')
+app.register_blueprint(hf,url_prefix='/huggingface')
 
 @app.errorhandler(404)
 def page_not_found(e):
