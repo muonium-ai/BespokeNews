@@ -17,6 +17,7 @@ from apps.hn import hn
 
 # Import the Blacklist class from the lib.blacklist module
 from lib.blacklist import Blacklist
+from lib.html_cleaner import html_cleaner
 
 # Initialize the Blacklist in the app's global context
 blacklist = Blacklist(blacklist_files=["config/blacklist.txt", "config/blacklist_urls.txt"])
@@ -67,36 +68,6 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-# Allowed HTML tags and attributes for sanitization
-ALLOWED_TAGS = [
-    "a",
-    "abbr",
-    "acronym",
-    "b",
-    "blockquote",
-    "code",
-    "em",
-    "i",
-    "li",
-    "ol",
-    "strong",
-    "ul",
-    "p",
-    "pre",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "img",
-]
-ALLOWED_ATTRIBUTES = {
-    "*": ["class", "id"],
-    "a": ["href", "rel", "title"],
-    "img": ["src", "alt", "title"],
-}
-
 
 def extract_main_domain(url):
     """
@@ -135,7 +106,7 @@ def markdown_filter(text):
     html = markdown(text, extensions=["extra", "codehilite", "nl2br"])
 
     # Sanitize the HTML to prevent XSS attacks
-    clean_html = bleach.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES)
+    clean_html = html_cleaner(html)
 
     # Mark the string as safe HTML for Jinja2
     return Markup(clean_html)
