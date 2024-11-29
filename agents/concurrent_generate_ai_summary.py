@@ -74,7 +74,7 @@ def generate_summary(content):
         client = ollama.Client(host='http://localhost:11434')  # Adjust initialization if required by the client
 
         # Define the prompt for summarization
-        prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"
+        prompt = f"Summarize the following news article in a clear and concise manner, highlighting the main points, key events, and important details. Ensure the summary is reader-friendly and captures the essence of the article:\n\n{content}\n\nSummary:"
 
         response = client.chat(
             model="llama3.2",
