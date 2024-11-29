@@ -39,6 +39,8 @@ def main():
     duration = 1
     schedule.every(duration).minutes.do(fetch_news)
     schedule.every(duration).minutes.do(generate_summaries)
+    # Schedule the job to run at 11:59 PM
+    #schedule.every().day.at("23:59").do(job)
 
     print("Scheduler started. Press Ctrl+C to exit.")
     # Run the tasks immediately before starting the schedule loop

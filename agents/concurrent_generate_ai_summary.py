@@ -54,6 +54,9 @@ def get_stories_without_summary(conn):
 
 
 def generate_summary(content):
+    # set python environment variable to use ollama host
+    os.environ["OLAMA_HOST"] = "0.0.0.0:11434"
+
     """
     Generate a summary of the content using the Ollama Llama 3.2 model.
 
@@ -68,7 +71,7 @@ def generate_summary(content):
 
     try:
         # Initialize the Ollama client
-        client = ollama.Client()  # Adjust initialization if required by the client
+        client = ollama.Client(host='http://localhost:11434')  # Adjust initialization if required by the client
 
         # Define the prompt for summarization
         prompt = f"Summarize the following article:\n\n{content}\n\nSummary:"
